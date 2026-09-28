@@ -194,8 +194,10 @@ export const useUIStore = create<UIStore>()(
         if (urlLang && state) {
           state.lang = urlLang;
           i18n.changeLanguage(urlLang);
-        } else if (state?.lang) {
-          i18n.changeLanguage(state.lang);
+        } else if (state) {
+          // 以 i18next（localStorage: opresume_ui_lang）为准：落地页与编辑器共用该键，
+          // 落地页切换后 persist 中的旧 lang 不能再把语言改回去
+          state.lang = i18n.language;
         }
       },
     },

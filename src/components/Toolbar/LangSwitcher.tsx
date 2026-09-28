@@ -1,12 +1,8 @@
 import { useId } from 'react';
 import { LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { LANGUAGES } from '@/i18n';
 import { useUIStore } from '@/store/ui';
-
-const LANGS = [
-  { code: 'zh-CN', label: '中' },
-  { code: 'en-US', label: 'EN' },
-] as const;
 
 /** 滑块过渡：模块级稳定引用避免每次 render 构造新对象。
  *  时长 0.35s 让语言切换响应迅捷（SpacingPresetGroup 0.6s 强调"撑开缓慢"，诉求不同）。 */
@@ -27,7 +23,7 @@ export function LangSwitcher() {
   return (
     <LayoutGroup id={groupId}>
       <div className="inline-flex h-8 items-center rounded-md border bg-muted/40 p-0.5 text-xs font-medium">
-        {LANGS.map((l) => {
+        {LANGUAGES.map((l) => {
           const active = lang === l.code;
           return (
             <button

@@ -13,6 +13,24 @@
       }
     } catch (_) { /* localStorage 不可用时忽略，正常显示 landing */ }
   </script>
+  <script>
+    // 首帧语言预检（顺序与 i18next 一致：?lang= > localStorage > 浏览器语言）：
+    // 非中文用户先隐藏正文避免中文闪变；1s 保险丝保证脚本加载失败时页面仍可见
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search).get('lang') || '';
+        var stored = '';
+        try { stored = localStorage.getItem('opresume_ui_lang') || ''; } catch (_) {}
+        var lang = q || stored || navigator.language || '';
+        if (/^en/i.test(lang)) {
+          document.documentElement.classList.add('i18n-pending');
+          setTimeout(function () {
+            document.documentElement.classList.remove('i18n-pending');
+          }, 1000);
+        }
+      } catch (_) { /* 环境异常时保持中文直出 */ }
+    })();
+  </script>
   <title>优派简历</title>
   <meta name="description" content="优派简历 OpResume — 免登录的智能简历生成器。保护隐私，体验不打折扣。" />
 
@@ -79,6 +97,8 @@
   </script>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <!-- 品牌字体 preload：缩短 font-display: swap 回退窗口 -->
+  <link rel="preload" href="/fonts/MiSans-Bold.ttf" as="font" type="font/ttf" crossorigin />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -86,11 +106,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap" rel="stylesheet" />
 
   <style>
-    /* ============================================================
-       品牌字体：MiSans Bold（小米开源 OFL 协议，可商用）
-       已做子集化，仅含品牌名"优派简历"所需字符，体积约 2.5KB。
-       通过 .brand-font 类按需应用，与 React 编辑器（src/index.css）保持一致。
-       ============================================================ */
+    /* 品牌字体：MiSans Bold 子集仅含“优派简历”四字（cmap 无拉丁字母），
+       英文态 OpResume 依赖 Manrope 回退；字体栈改动须与 .nav-brand、src/index.css 三处同步。 */
     @font-face {
       font-family: 'MiSans';
       src: url('/fonts/MiSans-Bold.ttf') format('truetype');
@@ -99,7 +116,7 @@
       font-display: swap;
     }
     .brand-font {
-      font-family: 'MiSans', system-ui, -apple-system, BlinkMacSystemFont,
+      font-family: 'MiSans', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont,
         'PingFang SC', 'Microsoft YaHei', sans-serif;
     }
   </style>
@@ -151,6 +168,9 @@
     ::selection { background: var(--color-text-main); color: var(--color-bg-light); }
     .dark-section ::selection { background: var(--color-bg-light); color: var(--color-bg-dark); }
 
+    /* 首帧语言预检：英文用户在落地页脚本替换文案前隐藏正文（见 head 内联脚本） */
+    html.i18n-pending body { visibility: hidden; }
+
     a { text-decoration: none; color: inherit; }
 
     /* ============================================================
@@ -182,7 +202,7 @@
     }
     .nav.is-dark { background: rgba(0, 0, 0, 0.6); color: var(--color-bg-light); }
     .nav-brand {
-      font-family: 'MiSans', system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-family: 'MiSans', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
       font-weight: 700; font-size: 18px; letter-spacing: -0.025em;
       color: #1A1A1A;
       display: flex; align-items: center; gap: 4px;
@@ -277,16 +297,21 @@
 
     .nav-btn {
       font-size: 13px; font-weight: 600; padding: 6px 16px; border-radius: 99px; cursor: pointer;
-      background: var(--color-text-main); color: var(--color-bg-light); transition: transform 0.3s var(--ease-apple); border: none;
+      background: var(--color-text-main); color: var(--color-bg-light); border: none;
+      transition: background-color 0.3s var(--ease-apple), color 0.3s var(--ease-apple);
     }
     .nav.is-dark .nav-btn { background: var(--color-bg-light); color: var(--color-text-main); }
     .nav-btn:hover { transform: scale(0.96); }
 
-    /* 通用按钮 */
+    /* 静态按钮的 hover 缩放；岛内 motion.button 禁挂（CSS transform 过渡会拦截 framer 逐帧写入） */
+    .btn-anim { transition: transform 0.4s var(--ease-apple); }
+
+    /* 通用按钮：transition 不含 transform（岛内缩放由 framer 驱动，静态按钮叠加 .btn-anim） */
     .btn {
       display: inline-flex; align-items: center; justify-content: center;
       padding: 16px 32px; border-radius: 99px; font-size: 18px; font-weight: 600;
-      transition: all 0.4s var(--ease-apple); cursor: pointer; border: none; outline: none;
+      transition: background-color 0.4s var(--ease-apple), color 0.4s var(--ease-apple), border-color 0.4s var(--ease-apple);
+      cursor: pointer; border: none; outline: none;
     }
     .btn-primary { background: var(--color-text-main); color: var(--color-bg-light); }
     .btn-primary:hover { background: #000; transform: scale(1.02); }
@@ -725,50 +750,55 @@
         <svg class="nav-logo" xmlns="http://www.w3.org/2000/svg" viewBox="425.43 407.90 770.44 770.44" fill="currentColor" aria-hidden="true">
           <path d="M520.2 408.6c-14.9 4-24.5 14.9-29.1 33.1-9.9 38.6 2.2 97.2 31.3 152 12.2 23.1 22 37.9 41.8 63.4 16.5 21.3 31.9 38 65.4 71.4 32.8 32.7 39.2 40.1 44.3 50.8 7 14.7 9.9 35.2 8.1 57.3-1.7 21.8-7.9 69.7-18 139.9-5.5 38.2-12.7 90.8-14.1 103.6-1.6 13.8-.6 18 6.6 27.4 13.8 18.2 57.9 66.6 62.4 68.5 5.5 2.2 9.9.6 16.4-6.2 20.8-21.7 58.6-65.7 61.3-71.3 1.9-3.9 2.4-6.7 2.4-12.5 0-6.4-6.2-59.9-14-120-6.3-48.8-12.1-96.5-13.4-110-6.8-67.9 7-135.6 41.6-204.5 32.7-65.2 71.4-108.3 118.4-131.8 42.7-21.3 79.7-20.6 102.5 2.2 11.3 11.3 16.9 25.7 16.9 43.2 0 21.5-6.4 40.5-21.2 62.6-22.3 33.3-62.3 61.7-108.2 76.8-28.3 9.3-62 15.5-84.7 15.5-11.3 0-22.5 5.9-28.5 15-7.2 10.8-10.4 29.8-7 41.4 2.1 7.2 7.7 13.5 14.9 16.7 4.9 2.3 6.3 2.4 24.7 2.3 47.4-.2 105.9-15.3 156-40.3 44.2-22.1 76.4-49.5 101-86 15.4-23 26.2-50.8 31.6-81.6 2.7-15.5 2.5-44.7-.4-58.7-5.6-26.9-16-46.6-33.8-63.9-17.9-17.4-38.2-27.3-66.7-32.6-13.2-2.4-48-2.4-63.7.1-16.3 2.5-39.8 8.7-53.7 14.1-44.1 17.2-86.9 50.4-122.3 94.9-24.3 30.6-47 71.1-69.5 124.1-7.7 18.2-9.2 20.4-12.8 18.8-6.8-3.1-33-31.6-46.9-50.9-37.3-52-58.7-118.9-59.2-185.6-.1-21.1-.1-21.1-12.2-27.5-20.4-10.9-51.5-16.2-68.2-11.7" />
         </svg>
-        <span>优派简历</span>
+        <span data-i18n="landing.nav.brand">优派简历</span>
       </a>
       <div class="nav-actions">
-        <a class="github-star-btn"
-           href="https://github.com/oopooa/opresume"
-           target="_blank" rel="noopener"
-           onclick="trackClarityEvent('github_header_clicked'); markStarPromptClicked()"
-           aria-label="Star OpResume on GitHub">
-          <!-- 五角星 outline；hover 时由 CSS 控制 fill 与 rotate -->
-          <svg class="github-star-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
-          <span>Star on GitHub</span>
-          <span class="github-star-btn__divider" aria-hidden="true"></span>
-          <span class="github-star-btn__count" id="github-star-count">—</span>
-        </a>
-        <button type="button" onclick="startApp(event, 'header')" class="nav-btn">开始使用</button>
+        <!-- nav 右侧按钮组单岛：语言切换重排时全组平滑补偿；静态内容为无 JS 兜底 -->
+        <span id="nav-island" style="display: contents;">
+          <a class="github-star-btn"
+             href="https://github.com/oopooa/opresume"
+             target="_blank" rel="noopener"
+             onclick="trackClarityEvent('github_header_clicked'); markStarPromptClicked()"
+             aria-label="Star OpResume on GitHub">
+            <!-- 五角星 outline；hover 时由 CSS 控制 fill 与 rotate -->
+            <svg class="github-star-btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            <span>Star on GitHub</span>
+            <span class="github-star-btn__divider" aria-hidden="true"></span>
+            <span class="github-star-btn__count">—</span>
+          </a>
+          <button type="button" onclick="startApp(event, 'header')" class="nav-btn btn-anim">开始使用</button>
+        </span>
       </div>
       <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
     </nav>
 
     <main>
       <section class="section-hero container">
-        <div class="kicker reveal">Privacy-first · Resume Builder</div>
-        <h1 class="hero-title reveal delay-1">写简历，本应如此</h1>
-        <p class="subtitle reveal delay-2">
+        <div class="kicker reveal" data-i18n="landing.hero.kicker">Privacy-first · Resume Builder</div>
+        <h1 class="hero-title reveal delay-1" data-i18n="landing.hero.title">写简历，本应如此</h1>
+        <p class="subtitle reveal delay-2" data-i18n-html="landing.hero.subtitleHtml">
           <span class="brand-font">优派简历</span> — 免登录的AI智能简历生成器<br />
           将数据留在本地，让隐私安全与极致体验并存。
         </p>
         <div class="hero-cta-group reveal delay-3">
-          <button type="button" onclick="startApp(event, 'hero')" class="btn btn-primary">
-            <span>立即开始</span>
-            <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
+          <span id="hero-cta" style="display: contents;">
+            <button type="button" onclick="startApp(event, 'hero')" class="btn btn-primary btn-anim">
+              <span>立即开始</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </button>
+          </span>
         </div>
       </section>
 
       <section class="section-spacing section-card" style="padding-bottom: 40px;">
         <div class="container features-header reveal">
-          <h2 class="hero-title" style="font-size: clamp(36px, 5vw, 64px); margin-bottom: 16px;">强大功能，<br /><span>化繁为简。</span></h2>
-          <p class="subtitle mx-auto">告别繁琐排版与隐私焦虑，专注于您的核心履历。</p>
+          <h2 class="hero-title" style="font-size: clamp(36px, 5vw, 64px); margin-bottom: 16px;" data-i18n-html="landing.features.headerHtml">强大功能，<br /><span>化繁为简。</span></h2>
+          <p class="subtitle mx-auto" data-i18n="landing.features.sub">告别繁琐排版与隐私焦虑，专注于您的核心履历。</p>
         </div>
 
         <div class="container">
@@ -784,11 +814,11 @@
                   <path d="M5 18H3" />
                 </svg>
               </div>
-              <h3 class="reveal">让 AI，<br /><span>替您字斟句酌。</span></h3>
-              <p class="reveal delay-1">只需划词选中经历，一键即可进行润色或精简。借助直观的红绿差异对比，AI 的每一处改动都一目了然，让您牢牢掌握修改主导权。</p>
+              <h3 class="reveal" data-i18n-html="landing.features.ai.titleHtml">让 AI，<br /><span>替您字斟句酌。</span></h3>
+              <p class="reveal delay-1" data-i18n="landing.features.ai.desc">只需划词选中经历，一键即可进行润色或精简。借助直观的红绿差异对比，AI 的每一处改动都一目了然，让您牢牢掌握修改主导权。</p>
               <ul class="feature-list reveal delay-2">
-                <li>精准到句的局部润色，拒绝盲目重写</li>
-                <li>自动提炼量化成果，增强专业感</li>
+                <li data-i18n="landing.features.ai.point1">精准到句的局部润色，拒绝盲目重写</li>
+                <li data-i18n="landing.features.ai.point2">自动提炼量化成果，增强专业感</li>
               </ul>
             </div>
             <div class="feature-visual reveal delay-3">
@@ -798,6 +828,7 @@
                   class="mockup-media"
                   src="/gif/ai-rewrite-diff.gif"
                   alt="AI 划词润色与 Diff 对比演示"
+                  data-i18n-alt="landing.features.ai.gifAlt"
                   loading="lazy"
                   decoding="async"
                 />
@@ -822,8 +853,8 @@
                   <circle cx="15" cy="18" r="1" />
                 </svg>
               </div>
-              <h3 class="reveal">自由拖拽，<br /><span>随心排版。</span></h3>
-              <p class="reveal delay-1">告别传统简历死板的模板限制。采用积木式所见即所得设计，所有模块皆可自由增减。只需轻轻拖拽，即可实时调整最佳版面顺序。</p>
+              <h3 class="reveal" data-i18n-html="landing.features.drag.titleHtml">自由拖拽，<br /><span>随心排版。</span></h3>
+              <p class="reveal delay-1" data-i18n="landing.features.drag.desc">告别传统简历死板的模板限制。采用积木式所见即所得设计，所有模块皆可自由增减。只需轻轻拖拽，即可实时调整最佳版面顺序。</p>
             </div>
             <div class="feature-visual reveal delay-2">
               <div class="mockup-box mockup-box-drag">
@@ -832,6 +863,7 @@
                   class="mockup-media"
                   src="/gif/list-drag.gif"
                   alt="模块拖拽排序演示"
+                  data-i18n-alt="landing.features.drag.gifAlt"
                   loading="lazy"
                   decoding="async"
                 />
@@ -854,8 +886,8 @@
                   <line x1="3" y1="3" x2="21" y2="21" />
                 </svg>
               </div>
-              <h3 class="reveal">一键打码，<br /><span>分享更安心。</span></h3>
-              <p class="reveal delay-1">准备去社区寻求大牛的简历建议？开启隐私模式，系统会自动对姓名、电话、邮箱及公司名称等敏感信息进行智能脱敏。截屏分享，从此毫无负担。</p>
+              <h3 class="reveal" data-i18n-html="landing.features.privacy.titleHtml">一键打码，<br /><span>分享更安心。</span></h3>
+              <p class="reveal delay-1" data-i18n="landing.features.privacy.desc">准备去社区寻求大牛的简历建议？开启隐私模式，系统会自动对姓名、电话、邮箱及公司名称等敏感信息进行智能脱敏。截屏分享，从此毫无负担。</p>
             </div>
             <div class="feature-visual reveal delay-2">
               <div class="mockup-box mockup-box-privacy">
@@ -864,6 +896,7 @@
                   class="mockup-media"
                   src="/gif/privacy-mode.gif"
                   alt="一键隐私打码模式演示"
+                  data-i18n-alt="landing.features.privacy.gifAlt"
                   loading="lazy"
                   decoding="async"
                 />
@@ -886,8 +919,8 @@
                   <line x1="12" y1="11" x2="12" y2="17" />
                 </svg>
               </div>
-              <h3 class="reveal">旧简历，<br /><span>一键无缝迁移。</span></h3>
-              <p class="reveal delay-1">已有旧版 PDF 简历？直接上传，AI 将精准提取并梳理您的所有经历，无缝填充至全新版面。彻底告别繁琐的手动复制粘贴。</p>
+              <h3 class="reveal" data-i18n-html="landing.features.pdf.titleHtml">旧简历，<br /><span>一键无缝迁移。</span></h3>
+              <p class="reveal delay-1" data-i18n="landing.features.pdf.desc">已有旧版 PDF 简历？直接上传，AI 将精准提取并梳理您的所有经历，无缝填充至全新版面。彻底告别繁琐的手动复制粘贴。</p>
             </div>
             <div class="feature-visual reveal delay-2">
               <div class="mockup-box mockup-box-pdf">
@@ -896,6 +929,7 @@
                   class="mockup-media"
                   src="/gif/ai-pdf-import.gif"
                   alt="PDF 简历智能解析与字段填充演示"
+                  data-i18n-alt="landing.features.pdf.gifAlt"
                   loading="lazy"
                   decoding="async"
                 />
@@ -908,12 +942,12 @@
       <section class="section-spacing dark-section" id="manifesto-section">
         <div class="container manifesto-layout">
           <div class="manifesto-text">
-            <h2 class="manifesto-title reveal">
+            <h2 class="manifesto-title reveal" data-i18n-html="landing.manifesto.titleHtml">
               您的数据<br />
               只在您手里<br />
               <i>免登录</i>
             </h2>
-            <p class="subtitle reveal delay-1 manifesto-desc">
+            <p class="subtitle reveal delay-1 manifesto-desc" data-i18n="landing.manifesto.desc">
               所有的简历内容仅保存在您的本地设备中。简历不再是被随意读取的云端档案，而是一份绝对私密的个人资产。
             </p>
           </div>
@@ -935,22 +969,22 @@
            ============================================================ -->
       <section class="section-spacing section-card section-stats" id="stats-section">
         <div class="container">
-          <h2 class="stats-heading reveal">极简架构<br /><span>绝对隐私</span></h2>
+          <h2 class="stats-heading reveal" data-i18n-html="landing.stats.headingHtml">极简架构<br /><span>绝对隐私</span></h2>
           <div class="stats-grid">
             <div class="stat reveal delay-1">
               <div class="stat-num"><span data-target="0">0</span></div>
               <div class="stat-label">DATABASE</div>
-              <p class="stat-desc">无数据库。我们不存储您的任何数据。</p>
+              <p class="stat-desc" data-i18n="landing.stats.database">无数据库。我们不存储您的任何数据。</p>
             </div>
             <div class="stat reveal delay-2">
               <div class="stat-num"><span data-target="0">0</span></div>
               <div class="stat-label">SIGNUPS</div>
-              <p class="stat-desc">无需邮箱、密码或第三方登录。打开页面即可使用。</p>
+              <p class="stat-desc" data-i18n="landing.stats.signups">无需邮箱、密码或第三方登录。打开页面即可使用。</p>
             </div>
             <div class="stat reveal delay-3">
               <div class="stat-num"><span data-target="100">0</span><em>%</em></div>
               <div class="stat-label">LOCAL</div>
-              <p class="stat-desc">核心数据始终储存在您的浏览器中，真正的纯客户端架构。</p>
+              <p class="stat-desc" data-i18n="landing.stats.local">核心数据始终储存在您的浏览器中，真正的纯客户端架构。</p>
             </div>
           </div>
         </div>
@@ -961,31 +995,31 @@
            ============================================================ -->
       <section class="section-faq" id="faq-section">
         <div class="container">
-          <h2 class="faq-heading reveal">常见问题</h2>
+          <h2 class="faq-heading reveal" data-i18n="landing.faq.heading">常见问题</h2>
           <div class="faq-list">
             <details class="faq-item reveal" ontoggle="this.open && trackClarityEvent('landing_faq_01_opened')">
-              <summary>免费使用吗？</summary>
-              <div class="faq-answer">完全免费。项目无广告打扰，无任何功能限制。</div>
+              <summary data-i18n="landing.faq.q1">免费使用吗？</summary>
+              <div class="faq-answer" data-i18n="landing.faq.a1">完全免费。项目无广告打扰，无任何功能限制。</div>
             </details>
             <details class="faq-item reveal" ontoggle="this.open && trackClarityEvent('landing_faq_02_opened')">
-              <summary>既然完全免费，那 AI 功能是如何计费的？</summary>
-              <div class="faq-answer">AI 功能采用 BYOK（自带密钥） 模式。您只需填入平台支持的 AI 供应商的 API Key 即可调用，平台不从中收取任何费用。</div>
+              <summary data-i18n="landing.faq.q2">既然完全免费，那 AI 功能是如何计费的？</summary>
+              <div class="faq-answer" data-i18n="landing.faq.a2">AI 功能采用 BYOK（自带密钥） 模式。您只需填入平台支持的 AI 供应商的 API Key 即可调用，平台不从中收取任何费用。</div>
             </details>
             <details class="faq-item reveal" ontoggle="this.open && trackClarityEvent('landing_faq_03_opened')">
-              <summary>目前支持哪些 AI 供应商？</summary>
-              <div class="faq-answer">目前已接入 「硅基流动 (SiliconFlow)」。我们非常重视社区需求，后续将根据大家的使用反馈，持续接入更多主流 AI 平台。</div>
+              <summary data-i18n="landing.faq.q3">目前支持哪些 AI 供应商？</summary>
+              <div class="faq-answer" data-i18n="landing.faq.a3">目前已接入 「硅基流动 (SiliconFlow)」。我们非常重视社区需求，后续将根据大家的使用反馈，持续接入更多主流 AI 平台。</div>
             </details>
             <details class="faq-item reveal" ontoggle="this.open && trackClarityEvent('landing_faq_04_opened')">
-              <summary>更换电脑或浏览器后，简历会丢失吗？</summary>
-              <div class="faq-answer">数据仅保存在当前浏览器中。更换电脑或浏览器时，只需提前导出 JSON 格式备份，在新设备导入即可继续编辑。</div>
+              <summary data-i18n="landing.faq.q4">更换电脑或浏览器后，简历会丢失吗？</summary>
+              <div class="faq-answer" data-i18n="landing.faq.a4">数据仅保存在当前浏览器中。更换电脑或浏览器时，只需提前导出 JSON 格式备份，在新设备导入即可继续编辑。</div>
             </details>
             <details class="faq-item reveal" ontoggle="this.open && trackClarityEvent('landing_faq_05_opened')">
-              <summary>支持哪些语言？</summary>
-              <div class="faq-answer">目前支持简体中文与英文双语切换。</div>
+              <summary data-i18n="landing.faq.q5">支持哪些语言？</summary>
+              <div class="faq-answer" data-i18n="landing.faq.a5">目前支持简体中文与英文双语切换。</div>
             </details>
             <details class="faq-item reveal" ontoggle="this.open && trackClarityEvent('landing_faq_06_opened')">
-              <summary>导出的 PDF 能通过 ATS 简历筛选吗？</summary>
-              <div class="faq-answer">完美通过。我们采用浏览器原生引擎生成标准 PDF，确保所有文字均可被正常选中与复制。您的核心关键词能被各大企业的 ATS（招聘追踪系统）精准提取，告别乱码与识别遗漏。</div>
+              <summary data-i18n="landing.faq.q6">导出的 PDF 能通过 ATS 简历筛选吗？</summary>
+              <div class="faq-answer" data-i18n="landing.faq.a6">完美通过。我们采用浏览器原生引擎生成标准 PDF，确保所有文字均可被正常选中与复制。您的核心关键词能被各大企业的 ATS（招聘追踪系统）精准提取，告别乱码与识别遗漏。</div>
             </details>
           </div>
         </div>
@@ -993,18 +1027,20 @@
 
       <section class="section-final">
         <div class="container">
-          <h2 class="reveal">下一次跃迁，从这里开始</h2>
-          <p class="section-final-subtitle reveal delay-1">
-            用<span class="brand-font">优派简历</span>，打造一份真正"有派"的简历。
+          <h2 class="reveal" data-i18n="landing.final.title">下一次跃迁，从这里开始</h2>
+          <p class="section-final-subtitle reveal delay-1" data-i18n-html="landing.final.subtitleHtml">
+            用<span class="brand-font">优派简历</span>，打造一份真正“有派”的简历。
           </p>
           <div class="reveal delay-2">
-            <button onclick="startApp(event, 'bottom')" class="btn btn-primary" style="padding: 18px 40px; font-size: 20px;">
-              <span>立即开始</span>
-              <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
+            <span id="final-cta" style="display: contents;">
+              <button onclick="startApp(event, 'bottom')" class="btn btn-primary btn-anim" style="padding: 18px 40px; font-size: 20px;">
+                <span>立即开始</span>
+                <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </button>
+            </span>
           </div>
         </div>
       </section>
@@ -1012,10 +1048,13 @@
 
     <footer>
       <div class="container footer-grid">
-        <div>© 2026 优派简历 <span class="brand-font">OpResume</span></div>
+        <div data-i18n-html="landing.footerHtml">© 2026 优派简历 <span class="brand-font">OpResume</span></div>
       </div>
     </footer>
   </div>
+
+  <!-- 落地页动效岛入口（module defer，DOM 就绪后同步挂载） -->
+  <script type="module" src="/src/landing/main.tsx"></script>
 
   <script>
     // 跳转到编辑器：写入路由标记后再进入 /editor，
@@ -1044,31 +1083,7 @@
       } catch (e) { /* localStorage 不可用时忽略 */ }
     }
 
-    // 拉取 GitHub star 数：1 小时 localStorage 缓存，避开未授权 API 60 次/小时/IP 限制；
-    // 网络失败或限流时静默保留占位符 "—"，不影响其它功能。
-    (function loadGitHubStars() {
-      const el = document.getElementById('github-star-count');
-      if (!el) return;
-      const cacheKey = 'opresume:github-stars';
-      const ttl = 60 * 60 * 1000;
-      const fmt = (n) => new Intl.NumberFormat('en-US').format(n);   // 7408 → "7,408"
-      try {
-        const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
-        if (cached && Date.now() - cached.t < ttl) {
-          el.textContent = fmt(cached.n);
-          return;
-        }
-      } catch {}
-      fetch('https://api.github.com/repos/oopooa/opresume')
-        .then((r) => r.ok ? r.json() : null)
-        .then((data) => {
-          if (!data) return;
-          const n = data.stargazers_count ?? 0;
-          el.textContent = fmt(n);
-          try { localStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), n })); } catch {}
-        })
-        .catch(() => { /* 离线/限流时保留占位符 */ });
-    })();
+    // star 数拉取已移入落地页岛（src/landing/main.tsx），随按钮组一起做 layout 补偿动画
 
     document.addEventListener('DOMContentLoaded', () => {
       // 滚动揭示动画 (Scroll Reveal)

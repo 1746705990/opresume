@@ -11,9 +11,10 @@
   font-display: swap;
 }
 
-/* 品牌字体降级链：MiSans → 系统中英文字体 → 通用 sans-serif。*/
+/* 品牌字体降级链：MiSans → Manrope（拉丁回退，子集 cmap 不含拉丁字母）→ 系统字体。
+   与落地页 index.html 的 .brand-font / .nav-brand 两处同步修改。*/
 .brand-font {
-  font-family: 'MiSans', system-ui, -apple-system, BlinkMacSystemFont,
+  font-family: 'MiSans', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont,
     'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 

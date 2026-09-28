@@ -1,0 +1,49 @@
+/* 语言切换按钮：配色/尺寸对齐编辑器 LangSwitcher，圆角对齐落地页胶囊（.github-star-btn/.nav-btn 的 99px） */
+.lang-switch {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid #E5E5E5;
+  border-radius: 99px;
+  background: rgba(245, 245, 245, 0.4);
+  font-size: 12px;
+  font-weight: 500;
+  user-select: none;
+}
+.lang-switch-btn {
+  position: relative;
+  height: 100%;
+  padding: 0 10px;
+  border: none;
+  border-radius: 99px;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  /* 禁 transform 过渡：避免拦截 framer 逐帧写入的 transform */
+  transition: color 350ms var(--ease-apple);
+  color: #737373;
+}
+.lang-switch-btn:hover { color: #0A0A0A; }
+.lang-switch-btn.is-active { color: #FAFAFA; }
+.lang-switch-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: #171717;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.lang-switch-label { position: relative; z-index: 1; }
+
+/* nav 深色态反色 */
+.nav.is-dark .lang-switch {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+}
+.nav.is-dark .lang-switch-btn { color: #A1A1A6; }
+.nav.is-dark .lang-switch-btn:hover { color: #F5F5F7; }
+.nav.is-dark .lang-switch-btn.is-active { color: #171717; }
+.nav.is-dark .lang-switch-pill {
+  background: #F5F5F7;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+}

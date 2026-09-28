@@ -12,6 +12,12 @@ const resources = {
 export const supportedLngs = ['zh-CN', 'en-US'] as const;
 export type SupportedLng = (typeof supportedLngs)[number];
 
+/** 语言切换按钮配置（落地页与编辑器共用，新增语言在此追加一项） */
+export const LANGUAGES: ReadonlyArray<{ code: SupportedLng; label: string }> = [
+  { code: 'zh-CN', label: '中' },
+  { code: 'en-US', label: 'EN' },
+];
+
 /** 将浏览器语言代码规范化为支持的语言 */
 export function normalizeLanguage(lang: string): SupportedLng {
   if (supportedLngs.includes(lang as SupportedLng)) {
