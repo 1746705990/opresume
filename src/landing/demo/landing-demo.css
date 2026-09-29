@@ -1,0 +1,943 @@
+/* ============================================================
+   落地页演示动画样式：复刻编辑器亮色视觉（PolishDialog / 简历卡片）。
+   独立 scoped 类名（demo- 前缀），不依赖 Tailwind，避免影响落地页全局。
+   颜色与编辑器 token 对齐：border #e5e5e5 / muted #f5f5f5 / primary #171717。
+   ============================================================ */
+
+.demo-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Manrope', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.5;
+  color: #171717;
+  pointer-events: none; /* 纯演示动画，屏蔽真实交互 */
+  user-select: none;
+}
+
+/* ---------- 简历卡片（仿编辑器渲染区） ---------- */
+
+.demo-resume {
+  height: 100%;
+  padding: 18px 22px;
+  background: #fff;
+  border-radius: 6px;
+}
+
+.demo-module-title {
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 2px solid #171717;
+}
+
+.demo-work-item + .demo-work-item {
+  margin-top: 10px;
+}
+
+.demo-work-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.demo-work-company {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.demo-work-date {
+  font-size: 11px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.demo-work-desc {
+  margin: 4px 0 0;
+  padding-left: 1rem; /* 与产品 .rich-content ul 对齐，圆点在行内左侧而非溢出到标题 */
+  list-style-type: disc;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: #404040;
+}
+
+.demo-work-desc li {
+  display: list-item;
+}
+
+/* ---------- 划词选区（模拟浏览器选区蓝） ---------- */
+
+.demo-select-line {
+  position: relative;
+  border-radius: 2px;
+}
+
+.demo-select-mark {
+  position: absolute;
+  background: rgba(51, 144, 255, 0.28);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* ---------- 虚拟光标（位置由 timeline 直写 transform，显隐/按压走 CSS 过渡） ---------- */
+
+.demo-cursor-anchor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 60; /* 压过对话框 backdrop/内容，光标始终在最上层 */
+  pointer-events: none;
+}
+
+.demo-cursor {
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: rgba(250, 170, 20, 0.9);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.16s;
+}
+
+.demo-cursor.is-visible {
+  opacity: 1;
+}
+
+.demo-cursor.is-press {
+  transform: scale(0.68);
+}
+
+/* ---------- 润色浮层（仿 PolishSelectionOverlay） ---------- */
+
+.demo-bubble {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  gap: 2px;
+  padding: 4px 6px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.demo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.demo-chip:hover {
+  background: #f5f5f5;
+}
+
+.demo-chip--active {
+  background: #f5f5f5;
+}
+
+.demo-chip svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- 润色对话框（仿 PolishDialog，紧凑版） ---------- */
+
+.demo-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(23, 23, 23, 0.28);
+}
+
+.demo-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(600px, calc(100% - 48px));
+  overflow: hidden;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.demo-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.demo-dialog-header svg {
+  width: 16px;
+  height: 16px;
+  color: #171717;
+}
+
+.demo-panes {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+}
+
+.demo-panes-head {
+  display: flex;
+  flex: 0 0 auto;
+  height: 26px;
+  border: 1px solid #e5e5e5;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+}
+
+.demo-pane-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #737373;
+  background: #f5f5f5;
+}
+
+.demo-pane-label.is-result {
+  color: #059669;
+  background: #f3f4f6;
+}
+
+.demo-pane-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-diff-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  padding: 0 8px;
+  font-size: 10.5px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #737373;
+  border-radius: 4px;
+  background: #e8e8e8;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+}
+
+.demo-diff-toggle.is-press {
+  transform: scale(0.9);
+  background: #d8d8d8;
+}
+
+.demo-diff-toggle:hover {
+  background: #dedede;
+}
+
+.demo-diff-toggle svg {
+  width: 11px;
+  height: 11px;
+}
+
+.demo-pane-count {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.demo-panes-body {
+  display: flex;
+  /* 固定高度：原文/预览/diff 三阶段对话框完全恒定，diff 的并集内容再多也不撑高 */
+  height: 160px;
+  border: 1px solid #e5e5e5;
+  border-radius: 0 0 6px 6px;
+}
+
+.demo-pane {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 14px; /* 对齐真实 text-sm */
+  line-height: 1.5;
+  overflow-y: auto;
+  /* 落地页无 Tailwind preflight，需自行重置 p 的 UA 默认 margin，
+     否则 diff 并集内容会带 margin 超高闪现滚动条 */
+}
+
+.demo-pane p {
+  margin: 0;
+}
+
+/* 演示画布内不显示滚动条 UI（内容已按容量约束，滚动条纯视觉噪声） */
+.demo-pane {
+  scrollbar-width: none;
+}
+
+.demo-pane::-webkit-scrollbar {
+  display: none;
+}
+
+.demo-pane + .demo-pane {
+  border-left: 1px solid #e5e5e5;
+}
+
+.demo-pane-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%; /* 撑满 pane（与真实 PolishDialog 的 h-full 一致），spinner 正居中 */
+  color: #737373;
+  font-size: 12px;
+}
+
+/* 对齐真实 loading 态：Loader2 图标（h-6 w-6 text-muted-foreground）+ 旋转动画 */
+.demo-spinner {
+  width: 24px;
+  height: 24px;
+  color: #737373;
+  animation: demo-spin 0.8s linear infinite;
+}
+
+@keyframes demo-spin {
+  to { transform: rotate(360deg); }
+}
+
+.demo-caret {
+  display: inline-block;
+  width: 1px;
+  height: 0.9em;
+  margin-left: 1px;
+  vertical-align: -0.1em;
+  background: #171717;
+  animation: demo-blink 0.9s step-end infinite;
+}
+
+@keyframes demo-blink {
+  50% { opacity: 0; }
+}
+
+.demo-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* 按钮：对齐真实 PolishDialog 的 size="sm"（h-8 px-3 text-xs） */
+.demo-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #737373;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.demo-btn-ghost:hover {
+  background: #f5f5f5;
+  color: #171717;
+}
+
+.demo-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #fafafa;
+  background: #171717;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.demo-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ----------
+   diff 高亮：applyInlineDiff 输出的 span 携带产品侧 Tailwind 类名
+   （bg-emerald-50 / line-through），落地页无 Tailwind，这里用
+   属性子串选择器补齐等价样式，保证红删绿增与产品像素级一致。
+   ---------- */
+
+.demo-pane [class*="bg-emerald-50"] {
+  background: #ecfdf5;
+  border-radius: 2px;
+  color: #059669;
+}
+
+.demo-pane [class*="line-through"] {
+  text-decoration: line-through;
+  opacity: 0.55;
+  color: #ef4444;
+}
+
+/* ---------- 拖拽演示（仿编辑器抽屉列表） ---------- */
+
+.demo-drawer {
+  padding: 14px;
+  background: #fff;
+}
+
+.demo-drawer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 模块头：逐类对照 editorHeaderRootClass + bg-editor-module
+   relative flex min-w-0 items-center gap-1 overflow-hidden rounded-lg px-3 */
+.demo-module-head {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #f8fafc;
+  transition: opacity 0.2s;
+}
+
+/* 被拖模块的原位：浅色显示表示位置未确定 */
+.demo-module-head.is-dimmed {
+  opacity: 0.4;
+}
+
+/* 左侧选中条（非展开态透明，占位保留） */
+.demo-head-stripe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+}
+
+/* Button variant="ghost" size="icon" 基础类 + [&_svg]:size-4（图标强制 16px） */
+.demo-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.demo-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.demo-icon-btn.demo-grab {
+  cursor: grab;
+}
+
+/* IconPicker 图标（text-gray-500 h-4 w-4） */
+.demo-icon-wrap {
+  flex-shrink: 0;
+  color: #6b7280;
+}
+
+.demo-icon-wrap svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 标题按钮：editorHeaderTitleButtonClass
+   flex w-0 min-w-0 flex-1 items-center gap-1.5 overflow-hidden py-3 text-left
+   text-[15px] font-medium text-gray-700 —— py-3 撑出模块头高度 */
+.demo-title-btn {
+  display: flex;
+  width: 0;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  padding: 12px 0;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.demo-title-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 标题后的小编辑铅笔（h-3 w-3 text-gray-400） */
+.demo-edit-pencil {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+
+.demo-edit-pencil svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* DragOverlay 浮动卡片：逐类对照 DragOverlayContent
+   flex items-center gap-2 rounded-lg bg-editor-module-active px-3 py-3 shadow-lg */
+.demo-drag-overlay {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.demo-drag-overlay svg {
+  width: 16px;
+  height: 16px;
+}
+
+.demo-drag-overlay .demo-grip {
+  color: #9ca3af;
+}
+
+.demo-drag-overlay .demo-icon-wrap {
+  color: #6b7280;
+}
+
+.demo-drag-overlay .demo-title-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.demo-grip {
+  display: inline-flex;
+  color: #9ca3af;
+}
+
+.demo-grip svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- 隐私演示（编辑器顶栏 + 简历画布，按钮在画布外与实际布局一致） ---------- */
+
+.demo-privacy {
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-editor-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: #fff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.demo-chrome-brand {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.demo-canvas {
+  flex: 1;
+  min-height: 0;
+  padding: 18px 24px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.demo-pv-name {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.demo-pv-label {
+  margin: 2px 0 10px;
+  font-size: 12px;
+  color: #737373;
+}
+
+.demo-privacy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #737373;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: #f5f5f5;
+  white-space: nowrap;
+}
+
+.demo-privacy-btn-icon {
+  display: inline-flex;
+}
+
+.demo-privacy-btn-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.demo-privacy-btn.is-on {
+  color: #047857;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.demo-pv-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #737373;
+}
+
+.demo-pv-contacts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.demo-pv-contacts svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.65;
+}
+
+.demo-privacy .demo-module-title {
+  margin-top: 16px;
+}
+
+.demo-edu-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+/* ---------- PDF 导入演示（流程主体平铺卡片中央，无边框对话框） ---------- */
+
+.demo-pdf-flow {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 16px 22px 18px;
+  background: #fff;
+}
+
+.demo-pdf-flow-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.demo-pdf-flow-header svg {
+  width: 15px;
+  height: 15px;
+  color: #171717;
+}
+
+.demo-pdf-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.demo-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0 24px;
+  border: 2px dashed #d4d4d4;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.demo-upload-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  color: #737373;
+  border-radius: 14px;
+  background: #f5f5f5;
+}
+
+.demo-upload-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.demo-upload-hint {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.demo-upload-format {
+  margin: 0;
+  font-size: 11px;
+  color: #737373;
+}
+
+.demo-pdf-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.demo-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.demo-file-chip svg {
+  width: 15px;
+  height: 15px;
+  color: #525252;
+}
+
+.demo-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.demo-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.45s;
+}
+
+.demo-step.is-active {
+  background: #f0f9ff;
+}
+
+.demo-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.demo-step-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e0e0e0;
+}
+
+.demo-step-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #059669;
+  border-radius: 50%;
+  background: #d1fae5;
+}
+
+.demo-step-check svg {
+  width: 12px;
+  height: 12px;
+}
+
+.demo-step-label {
+  font-size: 12px;
+  color: #a3a3a3;
+  transition: color 0.45s;
+}
+
+.demo-step.is-active .demo-step-label {
+  font-weight: 500;
+  color: #0369a1;
+}
+
+.demo-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.demo-preview-card {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.demo-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #737373;
+}
+
+.demo-preview-head svg {
+  width: 13px;
+  height: 13px;
+  color: #0ea5e9;
+}
+
+.demo-preview-count {
+  margin-left: auto;
+  padding: 0 6px;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 16px;
+  color: #737373;
+  border-radius: 999px;
+  background: #f5f5f5;
+}
+
+.demo-preview-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.demo-preview-strong {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.demo-preview-sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #737373;
+}
+
+.demo-preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 4px 0 0;
+  font-size: 10.5px;
+  color: #a3a3a3;
+}
+
+.demo-step-hint {
+  margin: 2px 0 0;
+  padding-left: 36px;
+  font-size: 10.5px;
+  color: rgba(115, 115, 115, 0.6);
+}
+
+.demo-skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.demo-skill-tag {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #404040;
+  border-radius: 5px;
+  background: #f5f5f5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-spinner {
+    animation: none;
+  }
+
+  .demo-caret {
+    animation: none;
+  }
+}

@@ -703,9 +703,9 @@
     /* 每个卡片单独调整 宽度（--mockup-w）和 高度（--mockup-h），单位 px。
        --mockup-w 是"最大宽度"，比父容器小会居中显示，比父容器大被父容器卡住。
        建议 .feature-visual 桌面端宽度约 556px，--mockup-w 起始值在 400-560 之间。 */
-    .mockup-box-ai      { --mockup-w: 680px; --mockup-h: 300px; }
+    .mockup-box-ai      { --mockup-w: 680px; --mockup-h: 340px; }
     .mockup-box-drag    { --mockup-w: 440px; --mockup-h: 280px; }
-    .mockup-box-privacy { --mockup-w: 600px; --mockup-h: 440px; }
+    .mockup-box-privacy { --mockup-w: 600px; --mockup-h: 300px; }
     .mockup-box-pdf     { --mockup-w: 480px; --mockup-h: 440px; }   /* GIF 1.09:1 近方形 */
     .dark-section .mockup-illustration { stroke: var(--color-text-dark-main); }
     .dark-section .mockup-illustration .accent-fill { fill: var(--color-text-dark-main); }
@@ -823,7 +823,9 @@
             </div>
             <div class="feature-visual reveal delay-3">
               <div class="mockup-box mockup-box-ai">
-                <!-- AI 改写演示 GIF：放在 public/gif/ 下，构建时复制到 dist 根，生产路径相同 -->
+                <!-- AI 改写程序化演示：React 演示岛（src/landing/demo/PolishDemo.tsx），
+                     进入视口懒加载，视觉复刻编辑器划词润色，文案随页面语言切换。
+                     原 GIF 方案（public/gif/ai-rewrite-diff.gif）保留可随时回滚：
                 <img
                   class="mockup-media"
                   src="/gif/ai-rewrite-diff.gif"
@@ -832,6 +834,11 @@
                   loading="lazy"
                   decoding="async"
                 />
+                -->
+                <!-- 注意：此处不能用 display:contents —— 不生成 CSS 盒子会让
+                     IntersectionObserver 永远报告不相交，演示岛永远不会被懒挂载。
+                     nav/hero/final 三岛直接挂载无此约束，demo 岛必须可观测。 -->
+                <span id="demo-polish" style="display: block; width: 100%; height: 100%;"></span>
               </div>
             </div>
           </div>
@@ -858,7 +865,7 @@
             </div>
             <div class="feature-visual reveal delay-2">
               <div class="mockup-box mockup-box-drag">
-                <!-- 模块拖拽排序演示 GIF -->
+                <!-- 拖拽排序程序化演示（src/landing/demo/DragDemo.tsx），原 GIF 保留可回滚：
                 <img
                   class="mockup-media"
                   src="/gif/list-drag.gif"
@@ -867,6 +874,8 @@
                   loading="lazy"
                   decoding="async"
                 />
+                -->
+                <span id="demo-drag" style="display: block; width: 100%; height: 100%;"></span>
               </div>
             </div>
           </div>
@@ -891,7 +900,7 @@
             </div>
             <div class="feature-visual reveal delay-2">
               <div class="mockup-box mockup-box-privacy">
-                <!-- 隐私打码模式演示 GIF -->
+                <!-- 隐私打码程序化演示（src/landing/demo/PrivacyDemo.tsx），原 GIF 保留可回滚：
                 <img
                   class="mockup-media"
                   src="/gif/privacy-mode.gif"
@@ -900,6 +909,8 @@
                   loading="lazy"
                   decoding="async"
                 />
+                -->
+                <span id="demo-privacy" style="display: block; width: 100%; height: 100%;"></span>
               </div>
             </div>
           </div>
@@ -924,7 +935,7 @@
             </div>
             <div class="feature-visual reveal delay-2">
               <div class="mockup-box mockup-box-pdf">
-                <!-- PDF 智能解析演示 GIF -->
+                <!-- PDF 导入程序化演示（src/landing/demo/PdfDemo.tsx），原 GIF 保留可回滚：
                 <img
                   class="mockup-media"
                   src="/gif/ai-pdf-import.gif"
@@ -933,6 +944,8 @@
                   loading="lazy"
                   decoding="async"
                 />
+                -->
+                <span id="demo-pdf" style="display: block; width: 100%; height: 100%;"></span>
               </div>
             </div>
           </div>

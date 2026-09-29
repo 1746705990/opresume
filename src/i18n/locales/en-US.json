@@ -338,6 +338,12 @@
     "siliconflow": "SiliconFlow"
   },
   "landing": {
+    "demo": {
+      "polish": {
+        "original": "Worked on the docs editor frontend — some architecture design, occasional performance fixes, and mentored two teammates.",
+        "rewritten": "Led the docs editor frontend architecture and performance: render time down 60%, 60fps scrolling, 20+ plugins enabled, 10M+ daily users served."
+      }
+    },
     "meta": {
       "title": "OpResume — Privacy-first Resume Builder",
       "description": "OpResume — a login-free, AI-powered resume builder. Privacy protected, no compromise on experience."

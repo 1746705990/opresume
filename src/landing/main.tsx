@@ -259,11 +259,44 @@ function mountIslands() {
   }
 }
 
+/** 演示动画岛：进入视口才动态加载对应 chunk（vite 自动拆分 JS+CSS，不占首屏） */
+const DEMO_ISLANDS: Array<{ id: string; load: () => Promise<{ default: () => ReactElement }> }> = [
+  { id: 'demo-polish', load: () => import('./demo/PolishDemo') },
+  { id: 'demo-drag', load: () => import('./demo/DragDemo') },
+  { id: 'demo-privacy', load: () => import('./demo/PrivacyDemo') },
+  { id: 'demo-pdf', load: () => import('./demo/PdfDemo') },
+];
+
+function mountDemoIslands() {
+  if (!('IntersectionObserver' in window)) return;
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        const island = DEMO_ISLANDS.find((d) => d.id === entry.target.id);
+        if (!island || entry.target.childElementCount > 0) continue;
+        void island.load().then(({ default: Demo }) => {
+          const host = document.getElementById(island.id);
+          if (!host || host.childElementCount > 0) return;
+          createRoot(host).render(<StrictMode><Demo /></StrictMode>);
+        });
+      }
+    },
+    { rootMargin: '160px' },
+  );
+  for (const { id } of DEMO_ISLANDS) {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  }
+}
+
 window.__landingSwitchLang = switchLanguage;
 
 // module 为 defer 语义，DOM 已就绪：先替换静态文案（英文用户无中文闪变），
 // 再挂岛，最后解除 head 预检的正文隐藏
 switchLanguage(i18n.language);
 mountIslands();
+mountDemoIslands();
 window.__landingIslandsMounted = true;
 document.documentElement.classList.remove('i18n-pending');
