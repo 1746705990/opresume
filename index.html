@@ -504,7 +504,17 @@
     }
 
     /* Final CTA */
-    .section-final { text-align: center; padding: 160px 0; background: var(--color-bg-card); }
+    /* Final CTA：min-height 撑满视口 + flex 居中，滚到页底时按钮落在视口中部（与 Hero 首尾呼应） */
+    .section-final {
+      min-height: 100vh;
+      min-height: 100dvh; /* 移动端动态视口（地址栏收展时高度更准），旧浏览器回退 100vh */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      padding: 96px 0;
+      background: var(--color-bg-card);
+    }
     .section-final h2 { font-size: clamp(36px, 5.5vw, 64px); font-weight: 800; line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 24px; }
     .section-final-subtitle {
       font-size: clamp(16px, 1.8vw, 20px);
